@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CC.AI | Student Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #F5A623 0%, #E8924A 30%, #D4763E 60%, #C4633A 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px 60px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ===== FLOATING PARTICLES ===== */
+        .particles {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.15; }
+            90% { opacity: 0.15; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* ===== NAV ===== */
+        .navbar {
+            width: 100%; max-width: 1100px; display: flex;
+            justify-content: space-between; align-items: center;
+            margin-bottom: 50px; position: relative; z-index: 10;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .cc-logo { width: 40px; height: 40px; flex-shrink: 0; }
+        .brand-text { font-size: 1.05rem; font-weight: 700; color: #1B1B3A; letter-spacing: -0.01em; }
+        .nav-links { display: flex; gap: 28px; list-style: none; }
+        .nav-links a { text-decoration: none; color: #1B1B3A; font-size: 0.9rem; font-weight: 500; opacity: 0.8; transition: 0.2s; }
+        .nav-links a:hover { opacity: 1; }
+        .nav-signin {
+            padding: 8px 24px; border-radius: 100px; border: 2px solid #1B1B3A;
+            background: transparent; color: #1B1B3A; font-weight: 600; font-size: 0.85rem;
+            cursor: pointer; transition: 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .nav-signin:hover { background: #1B1B3A; color: white; }
+
+        /* ===== HEADER ===== */
+        .page-header { text-align: center; margin-bottom: 48px; position: relative; z-index: 10; }
+        .page-header h1 {
+            font-size: 2.8rem; font-weight: 800; color: #1B1B3A;
+            letter-spacing: -0.04em; line-height: 1.15; margin-bottom: 14px;
+        }
+        .page-header p {
+            font-size: 1rem; color: rgba(27, 27, 58, 0.7);
+            max-width: 460px; margin: 0 auto; line-height: 1.6;
+        }
+
+        /* ===== CARDS ===== */
+        .cards-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px; width: 100%; max-width: 780px; position: relative; z-index: 10;
+        }
+
+        /* 3D TILT WRAPPER */
+        .tilt-wrapper {
+            perspective: 800px;
+            transform-style: preserve-3d;
+        }
+
+        .subject-card {
+            background: #FFFFFF; border-radius: 20px; padding: 28px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+            transition: box-shadow 0.35s ease;
+            position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.6);
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+        .subject-card:hover {
+            box-shadow: 0 20px 48px rgba(0,0,0,0.15), 0 0 20px rgba(245,166,35,0.1);
+        }
+        .subject-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #F5A623, #E8924A, #D4763E);
+        }
+
+        /* Tilt shine effect */
+        .card-shine {
+            position: absolute; inset: 0; pointer-events: none;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.3) 0%, transparent 60%);
+            opacity: 0; transition: opacity 0.3s; border-radius: 20px;
+        }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+
+        .subject-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; margin-bottom: 12px;
+        }
+        .icon-orange { background: rgba(245,166,35,0.12); border: 1.5px solid rgba(245,166,35,0.25); }
+        .icon-navy { background: rgba(27,27,58,0.08); border: 1.5px solid rgba(27,27,58,0.12); }
+
+        .subject-name { font-size: 1.25rem; font-weight: 700; color: #1B1B3A; letter-spacing: -0.02em; }
+
+        .risk-badge {
+            padding: 5px 12px; border-radius: 100px; font-size: 0.7rem;
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0;
+        }
+        .badge-low { background: rgba(16,185,129,0.1); color: #059669; }
+        .badge-medium { background: rgba(245,166,35,0.12); color: #B45309; }
+
+        .next-topic {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 16px; background: #F8F9FA; border-radius: 12px;
+            margin-bottom: 20px; border: 1px solid #F0F0F0;
+        }
+        .next-dot { width: 8px; height: 8px; border-radius: 50%; background: #F5A623; box-shadow: 0 0 8px rgba(245,166,35,0.4); flex-shrink: 0; }
+        .next-label { font-size: 0.72rem; color: #9CA3AF; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+        .next-value { font-size: 0.88rem; color: #1B1B3A; font-weight: 600; }
+
+        .progress-section { margin-bottom: 24px; }
+        .progress-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+        .progress-label { font-size: 0.82rem; color: #6B7280; font-weight: 500; }
+        .progress-value { font-size: 1.5rem; font-weight: 800; color: #E8924A; letter-spacing: -0.03em; }
+
+        .track { height: 8px; width: 100%; background: #F3F4F6; border-radius: 50px; overflow: hidden; }
+        .fill { height: 100%; border-radius: 50px; width: 0; transition: width 1.5s cubic-bezier(0.16,1,0.3,1); }
+        .fill-orange { background: linear-gradient(90deg, #F5A623, #E8924A); }
+        .fill-navy { background: linear-gradient(90deg, #1B1B3A, #3B3B6E); }
+        .progress-trend { display: flex; align-items: center; gap: 4px; margin-top: 8px; font-size: 0.75rem; color: #059669; font-weight: 600; }
+
+        .btn-ai {
+            width: 100%; padding: 14px 20px; border-radius: 14px; border: none;
+            font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.95rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            gap: 10px; transition: all 0.3s ease;
+        }
+        .btn-navy { background: #1B1B3A; color: #FFF; box-shadow: 0 4px 14px rgba(27,27,58,0.25); }
+        .btn-navy:hover { background: #2A2A50; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(27,27,58,0.35); }
+        .btn-warm { background: linear-gradient(135deg, #F5A623, #E8924A); color: #FFF; box-shadow: 0 4px 14px rgba(232,146,74,0.3); }
+        .btn-warm:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,146,74,0.45); }
+        .btn-ai:active { transform: translateY(0); }
+        .btn-ai svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* ===== AI CHAT WINDOW (slides in from bottom-right) ===== */
+        .chat-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(3px); z-index: 999;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .chat-overlay.active { opacity: 1; pointer-events: all; }
+
+        .chat-window {
+            position: fixed; bottom: 24px; right: 24px;
+            width: 380px; max-height: 520px;
+            background: #FFFFFF; border-radius: 20px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+            z-index: 1000; display: flex; flex-direction: column;
+            overflow: hidden;
+            transform: translateY(20px) scale(0.95); opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .chat-window.active {
+            transform: translateY(0) scale(1); opacity: 1; pointer-events: all;
+        }
+
+        .chat-header {
+            padding: 16px 20px; display: flex; align-items: center; gap: 12px;
+            background: #1B1B3A; color: white;
+        }
+        .chat-header-logo { width: 32px; height: 32px; }
+        .chat-header-info h4 { font-size: 0.9rem; font-weight: 700; }
+        .chat-header-info span { font-size: 0.72rem; opacity: 0.7; }
+        .chat-close {
+            margin-left: auto; background: rgba(255,255,255,0.15); border: none;
+            color: white; width: 28px; height: 28px; border-radius: 50%;
+            font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+        .chat-close:hover { background: rgba(255,255,255,0.3); }
+
+        .chat-body {
+            flex: 1; padding: 20px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 12px;
+            min-height: 280px; background: #F8F9FA;
+        }
+
+        .chat-msg {
+            max-width: 85%; padding: 12px 16px; border-radius: 16px;
+            font-size: 0.85rem; line-height: 1.5; animation: msgIn 0.3s ease;
+        }
+        .msg-bot {
+            background: #FFFFFF; color: #1B1B3A; align-self: flex-start;
+            border: 1px solid #E5E7EB; border-bottom-left-radius: 4px;
+        }
+        .msg-user {
+            background: #1B1B3A; color: white; align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex; gap: 4px; padding: 12px 16px;
+            background: white; border-radius: 16px; align-self: flex-start;
+            border: 1px solid #E5E7EB; border-bottom-left-radius: 4px;
+        }
+        .typing-dot {
+            width: 6px; height: 6px; background: #9CA3AF; border-radius: 50%;
+            animation: typingBounce 1.4s ease-in-out infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        .chat-input-area {
+            padding: 12px 16px; display: flex; gap: 8px;
+            border-top: 1px solid #E5E7EB; background: white;
+        }
+        .chat-input {
+            flex: 1; padding: 10px 14px; border-radius: 12px;
+            border: 1px solid #E5E7EB; font-family: 'Inter', sans-serif;
+            font-size: 0.85rem; outline: none; transition: 0.2s;
+        }
+        .chat-input:focus { border-color: #F5A623; }
+        .chat-send {
+            width: 40px; height: 40px; border-radius: 12px;
+            background: #1B1B3A; border: none; color: white;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+        .chat-send:hover { background: #2A2A50; }
+        .chat-send svg { width: 16px; height: 16px; fill: none; stroke: white; stroke-width: 2; }
+
+        @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        .tilt-wrapper { animation: fadeUp 0.6s ease-out backwards; }
+        .tilt-wrapper:nth-child(2) { animation-delay: 0.15s; }
+
+        @media (max-width: 500px) {
+            .cards-grid { grid-template-columns: 1fr; }
+            .page-header h1 { font-size: 2rem; }
+            .nav-links { display: none; }
+            .chat-window { width: calc(100% - 32px); right: 16px; bottom: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PARTICLES -->
+    <div class="particles" id="particles"></div>
+
+    <!-- NAV -->
+    <nav class="navbar">
+        <a href="#" class="nav-brand">
+            <svg class="cc-logo" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="45" cy="65" r="45" fill="#4F46E5"/>
+                <circle cx="78" cy="42" r="30" fill="#E8E4DF"/>
+                <circle cx="62" cy="65" r="28" fill="#E8E4DF"/>
+                <circle cx="78" cy="48" r="12" fill="#3B8A6A"/>
+                <circle cx="78" cy="48" r="7" fill="#FFFFFF"/>
+            </svg>
+            <span class="brand-text">College Circle AI</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#">Home</a></li>
+            <li><a href="#">About us</a></li>
+            <li><a href="#">Fundraising</a></li>
+        </ul>
+        <button class="nav-signin">Sign In</button>
+    </nav>
+
+    <!-- HEADER -->
+    <header class="page-header">
+        <h1>Your Learning,<br>Supercharged by AI</h1>
+        <p>Track your academic progress and get personalized AI tutoring across all your subjects.</p>
+    </header>
+
+    <!-- CARDS -->
+    <div class="cards-grid">
+        <!-- Card 1 -->
+        <div class="tilt-wrapper">
+            <div class="subject-card" data-subject="Data Structures" data-topic="AVL Trees & Rotations" data-progress="78">
+                <div class="card-shine"></div>
+                <div class="card-header">
+                    <div>
+                        <div class="subject-icon icon-orange">📊</div>
+                        <h2 class="subject-name">Data Structures</h2>
+                    </div>
+                    <div class="risk-badge badge-low">Low Risk</div>
+                </div>
+                <div class="next-topic">
+                    <div class="next-dot"></div>
+                    <div>
+                        <div class="next-label">Next Topic</div>
+                        <div class="next-value">AVL Trees & Rotations</div>
+                    </div>
+                </div>
+                <div class="progress-section">
+                    <div class="progress-row">
+                        <span class="progress-label">Course Progress</span>
+                        <span class="progress-value counter" data-target="78">0%</span>
+                    </div>
+                    <div class="track"><div class="fill fill-orange" data-width="78"></div></div>
+                    <div class="progress-trend">↑ +5% vs. last month</div>
+                </div>
+                <button class="btn-ai btn-navy">
+                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Ask AI Tutor
+                </button>
+            </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="tilt-wrapper">
+            <div class="subject-card" data-subject="Database Management" data-topic="Query Optimization" data-progress="52">
+                <div class="card-shine"></div>
+                <div class="card-header">
+                    <div>
+                        <div class="subject-icon icon-navy">🗄️</div>
+                        <h2 class="subject-name">Database Management</h2>
+                    </div>
+                    <div class="risk-badge badge-medium">Medium Risk</div>
+                </div>
+                <div class="next-topic">
+                    <div class="next-dot" style="background:#1B1B3A; box-shadow:0 0 8px rgba(27,27,58,0.3);"></div>
+                    <div>
+                        <div class="next-label">Next Topic</div>
+                        <div class="next-value">Query Optimization</div>
+                    </div>
+                </div>
+                <div class="progress-section">
+                    <div class="progress-row">
+                        <span class="progress-label">Course Progress</span>
+                        <span class="progress-value counter" data-target="52" style="color:#1B1B3A;">0%</span>
+                    </div>
+                    <div class="track"><div class="fill fill-navy" data-width="52"></div></div>
+                    <div class="progress-trend">↑ +3% vs. last month</div>
+                </div>
+                <button class="btn-ai btn-warm">
+                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Ask AI Tutor
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHAT OVERLAY -->
+    <div class="chat-overlay" id="chatOverlay"></div>
+
+    <!-- AI CHAT WINDOW -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <svg class="chat-header-logo" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="45" cy="65" r="45" fill="#6366F1"/>
+                <circle cx="78" cy="42" r="30" fill="#E8E4DF"/>
+                <circle cx="62" cy="65" r="28" fill="#E8E4DF"/>
+                <circle cx="78" cy="48" r="12" fill="#3B8A6A"/>
+                <circle cx="78" cy="48" r="7" fill="#FFFFFF"/>
+            </svg>
+            <div class="chat-header-info">
+                <h4 id="chatTitle">CC.AI Tutor</h4>
+                <span>Online • AI-powered</span>
+            </div>
+            <button class="chat-close" id="chatClose">✕</button>
+        </div>
+        <div class="chat-body" id="chatBody"></div>
+        <div class="chat-input-area">
+            <input class="chat-input" id="chatInput" type="text" placeholder="Ask anything about the topic...">
+            <button class="chat-send" id="chatSend">
+                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // =========== 1. FLOATING PARTICLES ===========
+        const particlesEl = document.getElementById('particles');
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const size = Math.random() * 20 + 8;
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.background = Math.random() > 0.5 ? '#FFFFFF' : '#1B1B3A';
+            p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+            p.style.animationDelay = (Math.random() * 10) + 's';
+            particlesEl.appendChild(p);
+        }
+
+        // =========== 2. 3D MOUSE TILT ===========
+        document.querySelectorAll('.tilt-wrapper').forEach(wrapper => {
+            const card = wrapper.querySelector('.subject-card');
+            const shine = card.querySelector('.card-shine');
+
+            wrapper.addEventListener('mousemove', (e) => {
+                const rect = wrapper.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (y - centerY) / centerY * -8;
+                const rotateY = (x - centerX) / centerX * 8;
+
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                shine.style.opacity = '1';
+                shine.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.25) 0%, transparent 60%)`;
+            });
+
+            wrapper.addEventListener('mouseleave', () => {
+                card.style.transform = 'rotateX(0) rotateY(0)';
+                shine.style.opacity = '0';
+            });
+        });
+
+        // =========== 3. ANIMATED COUNTER ===========
+        const counters = document.querySelectorAll('.counter');
+        const fills = document.querySelectorAll('.fill');
+        let animated = false;
+
+        const animateCounters = () => {
+            if (animated) return;
+            animated = true;
+
+            counters.forEach(counter => {
+                const target = +counter.dataset.target;
+                let current = 0;
+                const step = target / 60;
+                const timer = setInterval(() => {
+                    current += step;
+                    if (current >= target) { current = target; clearInterval(timer); }
+                    counter.textContent = Math.round(current) + '%';
+                }, 20);
+            });
+
+            fills.forEach(fill => {
+                setTimeout(() => { fill.style.width = fill.dataset.width + '%'; }, 100);
+            });
+        };
+
+        // Trigger on scroll into view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) animateCounters(); });
+        }, { threshold: 0.3 });
+        document.querySelectorAll('.subject-card').forEach(c => observer.observe(c));
+
+        // =========== 4. AI CHAT WINDOW ===========
+        const chatWindow = document.getElementById('chatWindow');
+        const chatOverlay = document.getElementById('chatOverlay');
+        const chatBody = document.getElementById('chatBody');
+        const chatInput = document.getElementById('chatInput');
+        let currentSubject = '';
+        let currentTopic = '';
+
+        // Open chat
+        document.querySelectorAll('.btn-ai').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const card = btn.closest('.subject-card');
+                currentSubject = card.dataset.subject;
+                currentTopic = card.dataset.topic;
+
+                document.getElementById('chatTitle').textContent = `CC.AI Tutor — ${currentSubject}`;
+                chatBody.innerHTML = '';
+                chatWindow.classList.add('active');
+                chatOverlay.classList.add('active');
+
+                // Bot greeting with typing animation
+                showTyping(() => {
+                    addMsg('bot', `Hi there! 👋 I'm your AI tutor for <strong>${currentSubject}</strong>.`);
+                    showTyping(() => {
+                        addMsg('bot', `Let's work on <strong>"${currentTopic}"</strong>. What would you like to start with?`);
+                    }, 1200);
+                }, 800);
+            });
+        });
+
+        // Close chat
+        document.getElementById('chatClose').addEventListener('click', closeChat);
+        chatOverlay.addEventListener('click', closeChat);
+        function closeChat() {
+            chatWindow.classList.remove('active');
+            chatOverlay.classList.remove('active');
+        }
+
+        // Send message
+        document.getElementById('chatSend').addEventListener('click', sendMsg);
+        chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMsg(); });
+
+        // =========== RULE-BASED CHATBOT ENGINE ===========
+        const knowledgeBase = {
+            'Data Structures': {
+                greetings: ['hi','hello','hey','sup','yo'],
+                rules: [
+                    { keywords: ['what','avl'],
+                      response: 'An <strong>AVL Tree</strong> is a self-balancing Binary Search Tree where the difference in heights of left and right subtrees (balance factor) is at most <strong>1</strong> for every node. It was invented by <strong>Adelson-Velsky and Landis</strong> in 1962.' },
+                    { keywords: ['rotation','rotate'],
+                      response: 'There are <strong>4 types of rotations</strong> in AVL Trees:<br>1️⃣ <strong>Left Rotation (LL)</strong> — when right subtree is heavy<br>2️⃣ <strong>Right Rotation (RR)</strong> — when left subtree is heavy<br>3️⃣ <strong>Left-Right (LR)</strong> — left child is right-heavy<br>4️⃣ <strong>Right-Left (RL)</strong> — right child is left-heavy' },
+                    { keywords: ['balance','factor'],
+                      response: 'The <strong>balance factor</strong> = height(left subtree) − height(right subtree). If it is <strong>-1, 0, or 1</strong>, the node is balanced. If it goes beyond that range, we need to perform rotations to rebalance.' },
+                    { keywords: ['time','complexity','big o'],
+                      response: 'AVL Trees guarantee <strong>O(log n)</strong> for search, insert, and delete — because the tree is always balanced. Compare this to a regular BST which can degrade to <strong>O(n)</strong> in the worst case (skewed tree).' },
+                    { keywords: ['insert','add','insertion'],
+                      response: 'To <strong>insert</strong> into an AVL tree:<br>1. Insert like a normal BST<br>2. Update the balance factor of each ancestor<br>3. If any node becomes unbalanced (BF > 1 or < -1), perform the appropriate rotation (LL, RR, LR, or RL)' },
+                    { keywords: ['delete','remove'],
+                      response: 'To <strong>delete</strong> from an AVL tree:<br>1. Delete like a normal BST (find in-order successor/predecessor if needed)<br>2. Update balance factors going up<br>3. Re-balance with rotations if any node becomes unbalanced' },
+                    { keywords: ['example','show','demonstrate'],
+                      response: 'Here\'s a quick example: Insert <strong>30, 20, 10</strong> into an empty AVL tree.<br>After inserting 10, node 30 has BF = 2 (left-heavy) → perform <strong>Right Rotation</strong>.<br>Result: 20 becomes root, 10 is left child, 30 is right child. ✅ Balanced!' },
+                    { keywords: ['bst','binary search','difference','compare'],
+                      response: 'Key difference: A <strong>BST</strong> can become skewed (like a linked list) giving O(n) operations. An <strong>AVL tree</strong> auto-balances after every insert/delete, guaranteeing O(log n). The trade-off is slightly slower insertions due to rotation overhead.' },
+                    { keywords: ['application','use','real world','why'],
+                      response: 'AVL Trees are used in:<br>• <strong>Database indexing</strong> (fast lookups)<br>• <strong>Memory management</strong> in OS<br>• <strong>Symbol tables</strong> in compilers<br>• Any scenario needing guaranteed O(log n) search!' },
+                    { keywords: ['help','what can','topic','learn'],
+                      response: 'I can help you with:<br>• What is an AVL Tree?<br>• Types of rotations (LL, RR, LR, RL)<br>• Balance factor explained<br>• Insertion & deletion steps<br>• Time complexity analysis<br>• Real-world applications<br>Just ask! 🎓' },
+                    { keywords: ['thank','thanks','great','awesome','cool'],
+                      response: 'You\'re welcome! 😊 Keep practicing AVL trees — they\'re a favorite in exams and interviews. Anything else you\'d like to cover?' },
+                ]
+            },
+            'Database Management': {
+                greetings: ['hi','hello','hey','sup','yo'],
+                rules: [
+                    { keywords: ['what','query','optimization','optimize'],
+                      response: '<strong>Query Optimization</strong> is the process of choosing the most efficient execution plan for a SQL query. The DBMS query optimizer evaluates multiple strategies (join order, index usage, scan type) and picks the one with the <strong>lowest estimated cost</strong>.' },
+                    { keywords: ['index','indexing'],
+                      response: 'An <strong>index</strong> is a data structure (usually B+ Tree) that speeds up data retrieval.<br>• <strong>Clustered Index</strong>: Reorders table rows physically (1 per table)<br>• <strong>Non-clustered Index</strong>: Separate structure pointing to rows (multiple allowed)<br>Always index columns used in WHERE, JOIN, and ORDER BY!' },
+                    { keywords: ['sql','select','join','query'],
+                      response: 'For efficient SQL queries:<br>1️⃣ Use <strong>SELECT specific_columns</strong> instead of SELECT *<br>2️⃣ Use <strong>WHERE</strong> to filter early<br>3️⃣ Prefer <strong>JOIN</strong> over subqueries when possible<br>4️⃣ Use <strong>EXPLAIN</strong> to analyze the execution plan<br>5️⃣ Add indexes on frequently queried columns' },
+                    { keywords: ['normalize','normalization','normal form','nf'],
+                      response: 'Database <strong>Normalization</strong> reduces redundancy:<br>• <strong>1NF</strong>: Atomic values, no repeating groups<br>• <strong>2NF</strong>: 1NF + no partial dependencies<br>• <strong>3NF</strong>: 2NF + no transitive dependencies<br>• <strong>BCNF</strong>: Every determinant is a candidate key<br>Most production DBs aim for 3NF.' },
+                    { keywords: ['explain','execution','plan'],
+                      response: 'The <strong>EXPLAIN</strong> command shows how the DBMS will execute your query:<br>• <strong>Seq Scan</strong> = full table scan (slow) ❌<br>• <strong>Index Scan</strong> = uses an index (fast) ✅<br>• <strong>Nested Loop</strong> vs <strong>Hash Join</strong> vs <strong>Merge Join</strong><br>Use <code>EXPLAIN ANALYZE</code> to see actual execution times!' },
+                    { keywords: ['transaction','acid'],
+                      response: '<strong>ACID</strong> properties ensure reliable transactions:<br>• <strong>A</strong>tomicity — all or nothing<br>• <strong>C</strong>onsistency — valid state transitions<br>• <strong>I</strong>solation — concurrent transactions don\'t interfere<br>• <strong>D</strong>urability — committed data survives crashes' },
+                    { keywords: ['b tree','b+ tree','btree'],
+                      response: '<strong>B+ Trees</strong> are the backbone of database indexing:<br>• All data is stored in <strong>leaf nodes</strong><br>• Internal nodes only store keys for navigation<br>• Leaf nodes are <strong>linked</strong> for efficient range queries<br>• Guarantees O(log n) search, insert, delete' },
+                    { keywords: ['slow','performance','speed','fast'],
+                      response: 'Common causes of <strong>slow queries</strong>:<br>1. Missing indexes on WHERE/JOIN columns<br>2. Using SELECT * instead of specific columns<br>3. Not using LIMIT for large result sets<br>4. Correlated subqueries (use JOINs instead)<br>5. Outdated table statistics → run ANALYZE!' },
+                    { keywords: ['help','what can','topic','learn'],
+                      response: 'I can help you with:<br>• Query optimization techniques<br>• Indexing (B+ Tree, Clustered vs Non-clustered)<br>• SQL best practices<br>• Normalization (1NF → BCNF)<br>• ACID transactions<br>• Execution plan analysis<br>Just type your question! 🎓' },
+                    { keywords: ['example','show','demonstrate'],
+                      response: 'Example: <code>SELECT name FROM students WHERE dept_id = 5;</code><br>Without index → <strong>Full Table Scan</strong> O(n) ❌<br>With index on dept_id → <strong>Index Scan</strong> O(log n) ✅<br>That\'s the power of query optimization!' },
+                    { keywords: ['thank','thanks','great','awesome','cool'],
+                      response: 'Happy to help! 😊 Database optimization is a crucial skill. Keep practicing with EXPLAIN on real queries. Ask me anything else!' },
+                ]
+            }
+        };
+
+        function sendMsg() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+            addMsg('user', text);
+            chatInput.value = '';
+
+            showTyping(() => {
+                const response = getRuleBasedResponse(text);
+                addMsg('bot', response);
+            }, 1200);
+        }
+
+        function getRuleBasedResponse(input) {
+            const lower = input.toLowerCase();
+            const subjectKB = knowledgeBase[currentSubject];
+            if (!subjectKB) return `I'm set up to tutor on <strong>${currentSubject}</strong>, but I don't have specific rules for it yet. Try asking about ${currentTopic}!`;
+
+            // Check greetings
+            if (subjectKB.greetings.some(g => lower.includes(g))) {
+                return `Hey! 👋 Great to see you here. I'm ready to help you master <strong>${currentTopic}</strong>. What would you like to know?`;
+            }
+
+            // Score each rule by keyword matches
+            let bestMatch = null;
+            let bestScore = 0;
+            for (const rule of subjectKB.rules) {
+                const score = rule.keywords.filter(k => lower.includes(k)).length;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = rule;
+                }
+            }
+
+            if (bestMatch && bestScore > 0) {
+                return bestMatch.response;
+            }
+
+            // Fallback
+            return `That's an interesting question about <strong>${currentSubject}</strong>! 🤔 Try asking me about specific concepts like "${currentTopic}", time complexity, examples, or type <strong>"help"</strong> to see everything I can explain.`;
+        }
+
+        function addMsg(type, html) {
+            const div = document.createElement('div');
+            div.className = `chat-msg msg-${type}`;
+            div.innerHTML = html;
+            chatBody.appendChild(div);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function showTyping(callback, delay) {
+            const typing = document.createElement('div');
+            typing.className = 'typing-indicator';
+            typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            chatBody.appendChild(typing);
+            chatBody.scrollTop = chatBody.scrollHeight;
+            setTimeout(() => {
+                typing.remove();
+                callback();
+            }, delay);
+        }
+    </script>
+</body>
+</html>
